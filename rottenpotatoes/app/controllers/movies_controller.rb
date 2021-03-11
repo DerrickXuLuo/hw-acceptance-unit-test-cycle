@@ -9,6 +9,25 @@ class MoviesController < ApplicationController
   def index
     @movies = Movie.all
   end
+  
+  def same_director
+    @movie = Movie.find(params[:id])
+    director = @movie.director
+    if director.blank?
+      flash[:notice] = "'#{@movie.title}' has no director info."
+      redirect_to movies_path
+    else
+      @movies = Movie.where(director: director)
+    end
+  end
+  
+  def similar
+    @movie, @movies, error = Movie.find_with_same_director(params[:id])
+    if error
+      flash[:notice] = "'#{@movie.title}' has no director info"
+      redirect_to movies_path() and return
+    end
+  end
 
   def new
     # default: render 'new' template
@@ -42,6 +61,6 @@ class MoviesController < ApplicationController
   # Making "internal" methods private is not required, but is a common practice.
   # This helps make clear which methods respond to requests, and which ones do not.
   def movie_params
-    params.require(:movie).permit(:title, :rating, :description, :release_date)
+    params.require(:movie).permit(:title, :rating, :description, :release_date, :director)
   end
 end
